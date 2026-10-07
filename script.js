@@ -153,6 +153,24 @@ context.clearRect(0, 0, board.width, board.height);
 }
 
 function move() {
+    if (canMove(pacman, pacman.nextDirection) && pacman.nextDirection != '') {
+        let tempDirection = pacman.nextDirection;
+        pacman.nextDirection = '';
+        pacman.updateDirection(tempDirection);
+         //update pacman images
+        if (pacman.direction == 'U') {
+            pacman.image = pacmanUpImage;
+        }
+        else if (pacman.direction == 'D') {
+            pacman.image = pacmanDownImage;
+        }
+        else if (pacman.direction == 'L') {
+            pacman.image = pacmanLeftImage;
+        }
+        else if (pacman.direction == 'R') {
+            pacman.image = pacmanRightImage;
+        }
+    }
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
 
@@ -174,6 +192,40 @@ function move() {
     }
 }
 
+// function that checks input buffering/queued movement.
+function canMove(block, direction) {
+    let testX = block.x;
+    let testY = block.y;
+
+    if (direction == "U") {
+        testY -= tileSize;
+    }
+    else if (direction == "D") {
+        testY += tileSize;
+    }
+    else if (direction == "L") {
+        testX -= tileSize;
+    }
+    else if (direction == "R") {
+        testX += tileSize;
+    }
+
+    let testBlock = {
+        x: testX,
+        y: testY,
+        width: block.width,
+        height: block.height
+    };
+
+    for (let wall of walls) {
+        if (collision(testBlock, wall)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function pacmanMove(e) {
     if (gameOver) {
         loadMap();
@@ -186,30 +238,16 @@ function pacmanMove(e) {
     }
 
     if (e.code == "ArrowUp" || e.code == "KeyW") {
-        pacman.updateDirection('U');
+        pacman.nextDirection = "U";
     }
     else if (e.code == "ArrowDown" || e.code == "KeyS") {
-        pacman.updateDirection('D');
+        pacman.nextDirection = "D";
     }
     else if (e.code == "ArrowLeft" || e.code == "KeyA") {
-        pacman.updateDirection('L');
+        pacman.nextDirection = "L";
     }
     else if (e.code == "ArrowRight" || e.code == "KeyD") {
-        pacman.updateDirection('R');
-    }
-
-    //update pacman images
-    if (pacman.direction == 'U') {
-        pacman.image = pacmanUpImage;
-    }
-    else if (pacman.direction == 'D') {
-        pacman.image = pacmanDownImage;
-    }
-    else if (pacman.direction == 'L') {
-        pacman.image = pacmanLeftImage;
-    }
-    else if (pacman.direction == 'R') {
-        pacman.image = pacmanRightImage;
+        pacman.nextDirection = "R";
     }
     
 }
