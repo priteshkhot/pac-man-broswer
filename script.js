@@ -150,6 +150,16 @@ context.clearRect(0, 0, board.width, board.height);
     for (let food of foods.values()) {
         context.fillRect(food.x, food.y, food.width, food.height);
     }
+
+    //score
+    context.fillStyle = "white";
+    context.font="14px sans-serif";
+    if (gameOver) {
+        context.fillText("Game Over: " + String(score), tileSize/2, tileSize/2);
+    }
+    else {
+        context.fillText("x" + String(lives) + " " + String(score), tileSize/2, tileSize/2);
+    }
 }
 
 function move() {
@@ -189,6 +199,50 @@ function move() {
             // }
             
         }
+    }
+
+    //check ghosts collision
+    for (let ghost of ghosts.values()) {
+        if (collision(ghost, pacman)) {
+            lives -= 1;
+            if (lives == 0) {
+                gameOver = true;
+                return;
+            }
+            resetPositions();
+        }
+
+        if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
+            ghost.updateDirection('U');
+        }
+
+        ghost.x += ghost.velocityX;
+        ghost.y += ghost.velocityY;
+        for (let wall of walls.values()) {
+            if (collision(ghost, wall) || ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
+                ghost.x -= ghost.velocityX;
+                ghost.y -= ghost.velocityY;
+                const newDirection = directions[Math.floor(Math.random()*4)];
+                ghost.updateDirection(newDirection);
+            }
+        }
+    }
+
+    //check food collision
+    let foodEaten = null;
+    for (let food of foods.values()) {
+        if (collision(pacman, food)) {
+            foodEaten = food;
+            score += 10;
+            break;
+        }
+    }
+    foods.delete(foodEaten);
+
+    //next level
+    if (foods.size == 0) {
+        loadMap();
+        resetPositions();
     }
 }
 
@@ -257,6 +311,17 @@ function collision(a, b) {
            a.x + a.width > b.x &&   //a's top right corner passes b's top left corner
            a.y < b.y + b.height &&  //a's top left corner doesn't reach b's bottom left corner
            a.y + a.height > b.y;    //a's bottom left corner passes b's top left corner
+}
+
+function resetPositions() {
+    pacman.reset();
+    pacman.velocityX = 0;
+    pacman.velocityY = 0;
+    for (let ghost of ghosts.values()) {
+        ghost.reset();
+        const newDirection = directions[Math.floor(Math.random()*4)];
+        ghost.updateDirection(newDirection);
+    }
 }
 
 class Block {
